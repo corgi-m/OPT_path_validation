@@ -1,11 +1,8 @@
-import logging
-from concurrent.futures import ThreadPoolExecutor
-
 from controller.GenFactory import GenFactory
 from model.Channel import Channel
 from model.Node import Node
 from tools.opt_debug import check_Ki
-from tools.tools import check_thread_err, thread_exec
+from tools.tools import thread_exec
 
 
 class Network:
@@ -37,7 +34,6 @@ class Network:
 
     def network_start(self):
         thread_exec(lambda x: x.forward(), list(self.__nodes.values()))
-
 
     @classmethod
     def set_incomplete(cls, param):
