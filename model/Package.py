@@ -1,5 +1,4 @@
 import logging
-import threading
 
 from controller.HASHManager import HASHManager
 from tools.tools import get_timestamp
@@ -40,13 +39,14 @@ class OPTPackage:
     @staticmethod
     def MAC(key, message):
         return HASHManager.calc_hmac(key, message)
+
     @classmethod
     def index_add(cls):
         cls.index += 1
 
     def initialization(self, PK, Ki, PATH, payload):
-        self.R = PATH[1:]# 包含D
-        self.PATH = PATH# 包含SD
+        self.R = PATH[1:]  # 包含D
+        self.PATH = PATH  # 包含SD
         self.payload = payload
         self.datahash = self.H(payload)
         self.timestamp = get_timestamp()

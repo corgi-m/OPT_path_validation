@@ -1,3 +1,6 @@
+import logging
+
+
 def check_Ki(package):
     path = package.get_path()
     # print(path)
@@ -9,5 +12,5 @@ def check_Ki(package):
         if s.Ki[package][i] == i.Ki[package][s] and d.Ki[package][i] == i.Ki[package][s]:
             ...
         else:
-            print('false')
+            logging.error('false')
             exit(0)

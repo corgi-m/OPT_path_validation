@@ -1,11 +1,10 @@
 import logging
 import os
 import queue
-import threading
 import time
 
 from controller.GenFactory import GenFactory
-from model.Network import Network
+from model import Network
 from tools.tools import load_obj, strcat
 
 
@@ -16,7 +15,6 @@ class Node:
         self.packages = queue.Queue()
         self.Ki = {}
         (self.SK, self.PK) = load_obj('record/keys/pk_sk', os.getenv('RandomSeed'), self.__id, GenFactory.gen_SK_PK)
-        self.lock = threading.Lock()
 
     def __repr__(self):
         return strcat("Node ", self.__id)
@@ -29,10 +27,10 @@ class Node:
 
     def receive(self, package):
         PATH = package.get_path()
-        I = PATH.index(self)
+        index = PATH.index(self)
         source = PATH[0]
         destination = PATH[-1]
-        if I == len(PATH) - 1:
+        if index == len(PATH) - 1:
             Ki = [self.Ki[package][i] for i in PATH[1:-1]]
             Kd = self.Ki[package][destination]
             if package.D_validation(Ki, Kd):
@@ -42,7 +40,7 @@ class Node:
         else:
 
             Ki = self.Ki[package][source]
-            if package.R_validation(Ki, I):
+            if package.R_validation(Ki, index):
                 self.process(package)
             else:
                 self.drop(package)
@@ -56,17 +54,20 @@ class Node:
                 R_next = PATH[I + 1]
                 Channel = self.__routing_table[R_next]
                 Channel.transfer(package)
-            if Network.is_complete():
+            if Network.Network.is_complete():
                 break
             time.sleep(0)
 
     def drop(self, package):
-        leave = Network.complete()
+        leave = Network.Network.complete()
         logging.error(strcat('drop ', 'Network leave:', leave, package.get_path()))
 
     def succeed(self, package):
-        leave = Network.complete()
-        logging.debug(strcat('succeed ', 'Network leave:', leave))
+        leave = Network.Network.complete()
+        if leave != 0:
+            logging.debug(strcat('succeed ', 'Network leave:', leave))
+        else:
+            logging.info(strcat('succeed ', 'finish!'))
 
     def process(self, package):
         self.packages.put(package)

@@ -8,11 +8,11 @@ from model.Package import OPTPackage
 
 class GenFactory:
     @staticmethod
-    def gen_package(PK, PATH, Ki):
+    def gen_package(PATH):
         package = OPTPackage()
-        size = random.randint(1, 65535)
-        payload = random.randbytes(size)
-        package.initialization(PK=PK, Ki=Ki, PATH=PATH, payload=payload)
+        payload = GenFactory.gen_payload()
+        Ki = GenFactory.gen_Ki(package, PATH)  # 包含S、D
+        package.initialization(PK=PATH[0].PK, Ki=Ki, PATH=PATH, payload=payload)
         return package
 
     @staticmethod
@@ -58,21 +58,21 @@ class GenFactory:
         return G
 
     @staticmethod
-    def gen_payload(size=1):
+    def gen_payload(size=None):
         size = random.randint(1, 65535) if size is None else size
         payload = random.randbytes(size)
         return payload
 
     @staticmethod
-    def gen_Ki(package, source, destination, PATH):
+    def gen_Ki(package, PATH):
         Ki = []
         for _ in PATH:
             key = random.randbytes(32)
             Ki.append(key)  # aes = AES.new(key[:16], AES.MODE_EAX, nonce=key[16:])
         for i in range(1, len(Ki)):
-            source.add_Ki(package, PATH[i], Ki[i])
-            destination.add_Ki(package, PATH[i], Ki[i])
-            PATH[i].add_Ki(package, source, Ki[i])
+            PATH[0].add_Ki(package, PATH[i], Ki[i])
+            PATH[-1].add_Ki(package, PATH[i], Ki[i])
+            PATH[i].add_Ki(package, PATH[0], Ki[i])
         return Ki
 
     @staticmethod

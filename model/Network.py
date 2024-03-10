@@ -1,13 +1,10 @@
 import logging
-import time
 from concurrent.futures import ThreadPoolExecutor
 
 from controller.GenFactory import GenFactory
 from model.Channel import Channel
 from model.Node import Node
-from model.Package import OPTPackage
 from tools.opt_debug import check_Ki
-from tools.tools import get_time_take
 
 
 class Network:
@@ -20,11 +17,8 @@ class Network:
         self.G = G
         self.ROUTE = ROUTE
         self.set_incomplete(len(ROUTE))
-        logging.info(get_time_take())
         self.init_network()
-        logging.info(get_time_take())
         self.init_package()
-        logging.info(get_time_take())
 
     def __new__(cls, *args, **kwargs):
         if cls.instance is None:
@@ -33,7 +27,6 @@ class Network:
 
     def set_nodes(self, index):
         self.__nodes[index] = Node(index)
-        time.sleep(0)
 
     def set_edges(self, param):
         index = param[0]
@@ -61,14 +54,9 @@ class Network:
                 logging.exception(e)
 
     def source_add_package(self, route):
-        source = self.get_node(route[0])
-        destination = self.get_node(route[-1])
         PATH = [self.get_node(i) for i in route]
-        package = OPTPackage()
-        payload = GenFactory.gen_payload()
-        Ki = GenFactory.gen_Ki(package, source, destination, PATH)  # 包含S、D
-        package.initialization(PK=source.PK, Ki=Ki, PATH=PATH, payload=payload)
-        source.add_package(package)
+        package = GenFactory.gen_package(PATH)
+        PATH[0].add_package(package)
         return package
 
     def init_package(self):
@@ -82,9 +70,8 @@ class Network:
         executor.shutdown(wait=True)
 
     def network_start(self):
-        forward_start = lambda x: x.forward()
         with ThreadPoolExecutor(max_workers=len(self.__nodes)) as executor:
-            results = executor.map(forward_start, list(self.__nodes.values()))
+            results = executor.map(lambda x: x.forward(), list(self.__nodes.values()))
             try:
                 for result in results:
                     ...
