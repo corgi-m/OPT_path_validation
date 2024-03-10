@@ -5,6 +5,7 @@ from controller.GenFactory import GenFactory
 from model.Channel import Channel
 from model.Node import Node
 from tools.opt_debug import check_Ki
+from tools.tools import check_thread_err, thread_exec
 
 
 class Network:
@@ -25,59 +26,18 @@ class Network:
             cls.instance = super().__new__(cls)
         return cls.instance
 
-    def set_nodes(self, index):
-        self.__nodes[index] = Node(index)
-
-    def set_edges(self, param):
-        index = param[0]
-        edge = param[1]
-        self.__edges[2 * index] = (Channel(2 * index, self.__nodes[edge[0]], self.__nodes[edge[1]]))
-        self.__nodes[edge[0]].add_route(self.__nodes[edge[1]], self.__edges[2 * index])
-        self.__edges[2 * index + 1] = Channel(2 * index + 1, self.__nodes[edge[1]], self.__nodes[edge[0]])
-        self.__nodes[edge[1]].add_route(self.__nodes[edge[0]], self.__edges[2 * index + 1])
-
     def init_network(self):
-        with ThreadPoolExecutor(max_workers=len(self.G.nodes)) as executor:
-            results = executor.map(self.set_nodes, self.G.nodes)
-            try:
-                for result in results:
-                    ...
-            except Exception as e:
-                logging.exception(e)
-
-        with ThreadPoolExecutor(max_workers=len(self.G.edges)) as executor:
-            results = executor.map(self.set_edges, enumerate(self.G.edges))
-            try:
-                for result in results:
-                    ...
-            except Exception as e:
-                logging.exception(e)
-
-    def source_add_package(self, route):
-        PATH = [self.get_node(i) for i in route]
-        package = GenFactory.gen_package(PATH)
-        PATH[0].add_package(package)
-        return package
+        thread_exec(self.set_nodes, self.G.nodes)
+        thread_exec(self.set_edges, [(index, edges) for index, edges in enumerate(self.G.edges)])
 
     def init_package(self):
-        with ThreadPoolExecutor(max_workers=len(self.ROUTE)) as executor:
-            results = executor.map(self.source_add_package, self.ROUTE)
-            try:
-                for result in results:
-                    check_Ki(result)
-            except Exception as e:
-                logging.exception(e)
-        executor.shutdown(wait=True)
+        results = thread_exec(self.source_add_package, self.ROUTE)
+        for result in results:
+            check_Ki(result)
 
     def network_start(self):
-        with ThreadPoolExecutor(max_workers=len(self.__nodes)) as executor:
-            results = executor.map(lambda x: x.forward(), list(self.__nodes.values()))
-            try:
-                for result in results:
-                    ...
-            except Exception as e:
-                logging.exception(e)
-        executor.shutdown(wait=True)
+        thread_exec(lambda x: x.forward(), list(self.__nodes.values()))
+
 
     @classmethod
     def set_incomplete(cls, param):
@@ -94,6 +54,23 @@ class Network:
             return True
         else:
             return False
+
+    def source_add_package(self, route):
+        PATH = [self.get_node(i) for i in route]
+        package = GenFactory.gen_package(PATH)
+        PATH[0].add_package(package)
+        return package
+
+    def set_nodes(self, index):
+        self.__nodes[index] = Node(index)
+
+    def set_edges(self, param):
+        index = param[0]
+        edge = param[1]
+        self.__edges[2 * index] = Channel(2 * index, self.__nodes[edge[0]], self.__nodes[edge[1]])
+        self.__nodes[edge[0]].add_route(self.__nodes[edge[1]], self.__edges[2 * index])
+        self.__edges[2 * index + 1] = Channel(2 * index + 1, self.__nodes[edge[1]], self.__nodes[edge[0]])
+        self.__nodes[edge[1]].add_route(self.__nodes[edge[0]], self.__edges[2 * index + 1])
 
     def get_nodes(self):
         return self.__nodes

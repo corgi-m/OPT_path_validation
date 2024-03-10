@@ -1,6 +1,8 @@
+import logging
 import os
 import pickle
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -61,3 +63,22 @@ def load_obj(path, seed, filename, gen_obj, **kwargs):
 
 def get_time_take():
     return time.time() - Config.time0
+
+
+def thread_exec(func, iters):
+    with ThreadPoolExecutor(max_workers=len(iters)) as executor:
+        results = executor.map(func, iters)
+        try:
+            for result in results:
+                ...
+        except Exception as e:
+            logging.exception(e)
+    return results
+
+
+def check_thread_err(results):
+    try:
+        for result in results:
+            ...
+    except Exception as e:
+        logging.exception(e)
