@@ -1,20 +1,22 @@
-from controller.GenFactory import GenFactory
-from model.Channel import Channel
-from model.Node import Node
-from tools.opt_debug import check_Ki
+import logging
+
+from model.Layer.ABCLayer import ABCLayer
+from model.Network.BaseNode import BaseNode
+from model.Network.Channel import Channel
+from model.Package.BasePackage import BasePackage
+from model.Package.OPTPackage import OPTPackage
 from tools.tools import thread_exec
 
 
 class Network:
     instance = None
-    incomplete = 0
 
-    def __init__(self, G, ROUTE):
+    def __init__(self, G, ROUTE, PROTOCOL):
         self.__nodes = {}
         self.__edges = {}
         self.G = G
         self.ROUTE = ROUTE
-        self.set_incomplete(len(ROUTE))
+        self.PROTOCOL = PROTOCOL
         self.init_network()
         self.init_package()
 
@@ -28,37 +30,26 @@ class Network:
         thread_exec(self.set_edges, [(index, edges) for index, edges in enumerate(self.G.edges)])
 
     def init_package(self):
-        results = thread_exec(self.source_add_package, self.ROUTE)
-        for result in results:
-            check_Ki(result)
+        for protocol in self.PROTOCOL:
+            thread_exec(self.source_add_package(protocol.package), self.ROUTE)
 
     def network_start(self):
-        thread_exec(lambda x: x.forward(), list(self.__nodes.values()))
+        func = lambda x: x.forward()
+        thread_exec(func, list(self.__nodes.values()))
 
-    @classmethod
-    def set_incomplete(cls, param):
-        cls.incomplete = param
+    def source_add_package(self, Package):
+        def func(route):
+            PATH = [self.get_node(i) for i in route]
+            package = BasePackage(path=PATH)
+            package.add_package(PATH[0].get_layer(Package.get_layer()), Package)
+            PATH[0].add_package(package)
 
-    @classmethod
-    def complete(cls):
-        cls.incomplete -= 1
-        return cls.incomplete
+            return package
 
-    @classmethod
-    def is_complete(cls):
-        if cls.incomplete == 0:
-            return True
-        else:
-            return False
-
-    def source_add_package(self, route):
-        PATH = [self.get_node(i) for i in route]
-        package = GenFactory.gen_package(PATH)
-        PATH[0].add_package(package)
-        return package
+        return func
 
     def set_nodes(self, index):
-        self.__nodes[index] = Node(index)
+        self.__nodes[index] = BaseNode(index, self.PROTOCOL)
 
     def set_edges(self, param):
         index = param[0]

@@ -3,7 +3,7 @@ from tools.tools import strcat
 
 class Channel:
     def __init__(self, id, source, destination, data=""):
-        self.__id = str(id)
+        self.__id = id
         self.__source = source
         self.__destination = destination
         self.__data = data

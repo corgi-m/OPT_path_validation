@@ -3,17 +3,8 @@ import random
 import networkx as nx
 from Crypto.PublicKey import RSA
 
-from model.Package import OPTPackage
-
 
 class GenFactory:
-    @staticmethod
-    def gen_package(PATH):
-        package = OPTPackage()
-        payload = GenFactory.gen_payload()
-        Ki = GenFactory.gen_Ki(package, PATH)  # 包含S、D
-        package.initialization(PK=PATH[0].PK, Ki=Ki, PATH=PATH, payload=payload)
-        return package
 
     @staticmethod
     def gen_route(G, num_paths_to_select=30):
@@ -57,27 +48,4 @@ class GenFactory:
 
         return G
 
-    @staticmethod
-    def gen_payload(size=None):
-        size = random.randint(1, 65535) if size is None else size
-        payload = random.randbytes(size)
-        return payload
 
-    @staticmethod
-    def gen_Ki(package, PATH):
-        Ki = []
-        for _ in PATH:
-            key = random.randbytes(32)
-            Ki.append(key)  # aes = AES.new(key[:16], AES.MODE_EAX, nonce=key[16:])
-        for i in range(1, len(Ki)):
-            PATH[0].add_Ki(package, PATH[i], Ki[i])
-            PATH[-1].add_Ki(package, PATH[i], Ki[i])
-            PATH[i].add_Ki(package, PATH[0], Ki[i])
-        return Ki
-
-    @staticmethod
-    def gen_SK_PK():
-        key = RSA.generate(1024, random.randbytes)
-        SK = key.export_key()
-        PK = key.publickey().export_key()
-        return SK, PK

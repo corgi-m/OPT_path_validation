@@ -21,7 +21,14 @@ def strcat(*args):
     for i in args:
         result += str(i)
     return result
-
+def bytescat(*args):
+    result = b""
+    for i in args:
+        if not isinstance(i, bytes):
+            result += i.encode()
+        else:
+            result += i
+    return result
 
 def get_timestamp():
     return round(time.time() * 1000)
@@ -48,11 +55,11 @@ def save_obj(path, obj):
         pickle.dump(obj, f)
 
 
-def load_obj(path, seed, filename, gen_obj, **kwargs):
+def load_obj(path, seed, filename, gen_obj, stop=False, **kwargs):
     dir = strcat(path, '/', seed)
     os.makedirs(dir, exist_ok=True)
     path = strcat(dir, '/', filename)
-    if not os.path.exists(path) or os.getenv('Cache') != 'True':
+    if not os.path.exists(path) or os.getenv('Cache') != 'True' or stop is True:
         obj = gen_obj(*kwargs.values())
         save_obj(path, obj)
     else:
