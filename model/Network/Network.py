@@ -1,10 +1,6 @@
-import logging
-
-from model.Layer.ABCLayer import ABCLayer
 from model.Network.BaseNode import BaseNode
 from model.Network.Channel import Channel
 from model.Package.BasePackage import BasePackage
-from model.Package.OPTPackage import OPTPackage
 from tools.tools import thread_exec
 
 

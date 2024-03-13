@@ -1,6 +1,8 @@
 import hashlib
 import hmac
+import logging
 import random
+import time
 from abc import ABC
 from functools import wraps
 
@@ -10,7 +12,7 @@ from Crypto.Hash import SHA384
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as RSASIGN
 
-from tools.tools import to_bytes
+from tools.tools import to_bytes, strcat
 
 
 class ABCLayer(ABC):
@@ -24,7 +26,11 @@ class ABCLayer(ABC):
         @wraps(func)
         def fun(*args):
             args = [to_bytes(i) for i in args]
+            t1 = time.time()
             result = func(*args)
+            t2 = time.time() - t1
+            if t2 > 1:
+                logging.debug(strcat(func, t2))
             return to_bytes(result) if type(result) is not bool else result
 
         return fun

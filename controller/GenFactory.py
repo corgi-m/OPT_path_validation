@@ -1,7 +1,6 @@
 import random
 
 import networkx as nx
-from Crypto.PublicKey import RSA
 
 
 class GenFactory:
@@ -47,5 +46,3 @@ class GenFactory:
             G.add_edge(i, connected_node)
 
         return G
-
-

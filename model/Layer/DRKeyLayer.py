@@ -1,4 +1,3 @@
-import logging
 import os
 
 from model.Layer.ABCLayer import ABCLayer
@@ -21,18 +20,13 @@ class DRKeyLayer(ABCLayer):
         self.KSD = {}
 
     def receive(self, node, package, PATH, index):
-        logging.debug(strcat(index, ': ', len(PATH) - 1))
-        print(package.retrieval, index)
+        # logging.debug(strcat(index, ': ', len(PATH) - 1))
         if package.retrieval == False:
             if index == len(PATH) - 1:
                 if self.D_check(package, PATH, index):
                     retrieval_package = BasePackage(path=PATH[::-1])
                     retrieval_package.add_package(self, DRKeyPackage, retrieval=True, prepackage=package)
-                    print('TTT')
-
                     node.add_package(retrieval_package)
-                    print('TTT')
-
                     return True
             else:
                 if self.R_sign(package, PATH, index):

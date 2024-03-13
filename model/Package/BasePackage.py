@@ -1,6 +1,6 @@
-import logging
 import random
 
+from config.config import Config
 from model.Package.ABCPackage import ABCPackage
 
 
@@ -12,6 +12,7 @@ class BasePackage(ABCPackage):
         super().__init__()
         self.id = self.index
         self.index_add()
+        Config.add_incomplete()
         self.PATH = kwargs.get('path')
         self.payload = self.gen_payload(kwargs.get('size'))
         self.package = {}
@@ -33,5 +34,3 @@ class BasePackage(ABCPackage):
 
     def get_package(self, name):
         return self.package[name]
-
-

@@ -12,7 +12,6 @@ class BaseNode:
 
     def __init__(self, index, PROTOCOL):
         self.__id = index
-        Config.add_incomplete()
         self.__routing_table = {}  # 路由表
         self.packages = queue.Queue()
         self.SK, self.PK = load_obj('record/keys/pk_sk', os.getenv('RandomSeed'), self.__id, ABCLayer.ASymKeyGen)

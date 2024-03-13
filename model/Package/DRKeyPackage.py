@@ -1,5 +1,3 @@
-import logging
-
 from model.Package.ABCPackage import ABCPackage
 from tools.tools import get_timestamp, strcat, bytescat
 
