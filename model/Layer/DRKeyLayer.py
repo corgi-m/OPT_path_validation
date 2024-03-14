@@ -21,7 +21,7 @@ class DRKeyLayer(ABCLayer):
         if not package.retrieval:
             if index == len(PATH) - 1:
                 if self.D_check(package, PATH, index):
-                    retrieval_package = BasePackage(path=PATH[::-1])
+                    retrieval_package = BasePackage(PATH[::-1])
                     retrieval_package.add_package(self, DRKeyPackage, retrieval=True, prepackage=package)
                     node.add_package(retrieval_package)
                     return True

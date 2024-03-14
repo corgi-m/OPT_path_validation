@@ -25,11 +25,10 @@ class Network:
     def source_add_package(self, Package):
         def func(route):
             PATH = [self.nodes[i] for i in route]
-            package = BasePackage(path=PATH)
+            package = BasePackage(PATH)
             package.add_package(PATH[0].get_layer(Package.get_layer()), Package)
             PATH[0].add_package(package)
             return package
-
         return func
 
     def set_nodes(self, index):

@@ -39,7 +39,6 @@ class DRKeyPackage(ABCPackage):
         self.KEYS = layer.AESEncrypt(layer.SymK[self.sessionid][1], bytescat(Ki + self.AUTH))
         del layer.SymK[self.sessionid]
 
-
     def add_enckey(self, Layer, EncKey):
         self.EncKey[Layer] = EncKey
 

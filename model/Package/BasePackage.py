@@ -7,12 +7,12 @@ class BasePackage(ABCPackage):
     name = 'BaseLayer'
     index = 0
 
-    def __init__(self, **kwargs):
+    def __init__(self, PATH, size=None):
         super().__init__()
         self.id = self.index
         self.index_add()
-        self.PATH = kwargs.get('path')
-        self.payload = self.gen_payload(kwargs.get('size'))
+        self.PATH = PATH
+        self.payload = self.gen_payload(size)
         self.packages = {}
 
     def add_package(self, source_layer, Package, **kwargs):
