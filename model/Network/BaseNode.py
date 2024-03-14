@@ -11,35 +11,35 @@ from tools.tools import load_obj, strcat
 class BaseNode:
 
     def __init__(self, index, PROTOCOL):
-        self.__id = index
-        self.__routing_table = {}  # 路由表
+        self.id = index
+        self.routing_table = {}  # 路由表
         self.packages = queue.Queue()
-        self.SK, self.PK = load_obj('record/keys/pk_sk', os.getenv('RandomSeed'), self.__id, ABCLayer.ASymKeyGen)
-        self.SK = self.SK.decode()
-        self.PK = self.PK.decode()
-        self.protocol = {Layer.get_name(): Layer(self) for Layer in PROTOCOL}
+        SK, PK = load_obj('record/keys/pk_sk', os.getenv('RandomSeed'), self.id, ABCLayer.ASymKeyGen)
+        self.SK = SK.decode()
+        self.PK = PK.decode()
+        self.PROTOCOL = PROTOCOL
+        for Layer in PROTOCOL:
+            if not hasattr(self, Layer.get_name()):
+                setattr(self, Layer.get_name(), Layer(self))
 
     def __repr__(self):
-        return strcat("Node ", self.__id)
+        return strcat("Node ", self.id)
 
     def __eq__(self, other):
-        return self.__id == other.get_id()
+        return self.id == other.id
 
     def __hash__(self):
-        return hash(self.__id)
+        return hash(self.id)
 
-    def receive(self, package):
-        PATH = package.get_path()
+    def receive(self, basepackage):
+        PATH = basepackage.get_path()
         index = PATH.index(self)
-        for name, layer in self.protocol.items():
-            if not layer.receive(self, package.get_package(layer.name), PATH, index):
-                self.drop(package)
+        for layer, package in basepackage.packages.items():
+            if not self.__getattribute__(layer).receive(self, package, PATH, index):
+                self.drop(basepackage)
                 break
         else:
-            if index == len(PATH) - 1:
-                self.succeed(package)
-            else:
-                self.process(package)
+            self.succeed(basepackage) if index == len(PATH) - 1 else self.process(basepackage)
 
     def forward(self):
         while True:
@@ -48,15 +48,15 @@ class BaseNode:
                 PATH = package.get_path()
                 I = PATH.index(self)
                 R_next = PATH[I + 1]
-                Channel = self.__routing_table[R_next]
+                Channel = self.routing_table[R_next]
                 Channel.transfer(package)
             if Config.is_complete():
-                break
+                ...  # break
             time.sleep(0)
 
     def drop(self, package):
         leave = Config.complete()
-        logging.error(strcat('drop ', 'Network leave:', leave))
+        logging.error(strcat('drop '))
 
     def process(self, package):
         # logging.info(strcat('process '))
@@ -64,19 +64,14 @@ class BaseNode:
 
     def succeed(self, package):
         leave = Config.complete()
-        if leave != 0:
-            logging.info(strcat('succeed ', 'Network leave:', leave))
-        else:
-            logging.info(strcat('succeed ', 'finish!'))
-
-    def get_id(self):
-        return self.__id
+        logging.info(strcat('succeed '))
 
     def get_layer(self, layer_name):
-        return self.protocol[layer_name]
+        return self.__getattribute__(layer_name)
 
     def add_route(self, destination, channel):
-        self.__routing_table[destination] = channel
+        self.routing_table[destination] = channel
 
     def add_package(self, package):
+        Config.add_incomplete()
         self.packages.put(package)

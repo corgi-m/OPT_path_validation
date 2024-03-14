@@ -1,13 +1,12 @@
 import logging
 import os
 import pickle
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 import networkx as nx
 from matplotlib import pyplot as plt
-
-from config.config import Config
 
 
 def to_bytes(obj):
@@ -21,6 +20,8 @@ def strcat(*args):
     for i in args:
         result += str(i)
     return result
+
+
 def bytescat(*args):
     result = b""
     for i in args:
@@ -29,6 +30,7 @@ def bytescat(*args):
         else:
             result += i
     return result
+
 
 def get_timestamp():
     return round(time.time() * 1000)
@@ -68,11 +70,7 @@ def load_obj(path, seed, filename, gen_obj, stop=False, **kwargs):
     return obj
 
 
-def get_time_take():
-    return time.time() - Config.time0
-
-
-def thread_exec(func, iters):
+def thread_exec_wait(func, iters):
     with ThreadPoolExecutor(max_workers=len(iters)) as executor:
         results = executor.map(func, iters)
         try:
@@ -81,6 +79,13 @@ def thread_exec(func, iters):
         except Exception as e:
             logging.exception(e)
     return results
+
+
+def thread_exec_without_wait(func, iters):
+    for i in iters:
+        thread = threading.Thread(target=func, args=(i,))
+        thread.daemon = True
+        thread.start()
 
 
 def check_thread_err(results):

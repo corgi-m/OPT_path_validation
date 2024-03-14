@@ -18,9 +18,6 @@ from tools.tools import to_bytes, strcat
 class ABCLayer(ABC):
     name = 'BaseLayer'
 
-    def __init__(self, node):
-        ...
-
     @staticmethod
     def to_bytes(func):
         @wraps(func)
@@ -31,7 +28,7 @@ class ABCLayer(ABC):
             t2 = time.time() - t1
             if t2 > 1:
                 logging.debug(strcat(func, t2))
-            return to_bytes(result) if type(result) is not bool else result
+            return to_bytes(result) if type(result) is  str else result
 
         return fun
 
@@ -112,3 +109,5 @@ class ABCLayer(ABC):
     @classmethod
     def get_name(cls):
         return cls.name
+
+

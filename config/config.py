@@ -1,7 +1,10 @@
 import configparser
+import logging
 import os
 import random
 import time
+
+from tools.tools import strcat
 
 
 class Config:
@@ -20,10 +23,12 @@ class Config:
     @classmethod
     def add_incomplete(cls):
         cls.incomplete += 1
+        logging.info(strcat('Network leave:', cls.incomplete))
 
     @classmethod
     def complete(cls):
         cls.incomplete -= 1
+        logging.info(strcat('Network leave:', cls.incomplete))
         return cls.incomplete
 
     @classmethod
@@ -32,3 +37,7 @@ class Config:
             return True
         else:
             return False
+
+    @classmethod
+    def get_time_take(cls):
+        return time.time() - cls.time0

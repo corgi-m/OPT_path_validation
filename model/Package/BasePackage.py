@@ -1,6 +1,5 @@
 import random
 
-from config.config import Config
 from model.Package.ABCPackage import ABCPackage
 
 
@@ -12,15 +11,20 @@ class BasePackage(ABCPackage):
         super().__init__()
         self.id = self.index
         self.index_add()
-        Config.add_incomplete()
         self.PATH = kwargs.get('path')
         self.payload = self.gen_payload(kwargs.get('size'))
-        self.package = {}
+        self.packages = {}
 
-    def add_package(self, source, Package, **kwargs):
-        self.package[Package.get_layer()] = Package(source, self, **kwargs)
+    def add_package(self, source_layer, Package, **kwargs):
+        package = Package(source_layer, self, **kwargs)
+        self.packages[Package.get_layer()] = package
+        return package
 
-    def gen_payload(self, size=None):
+    def del_package(self, layer):
+        del self.packages[layer]
+
+    @staticmethod
+    def gen_payload(size=None):
         size = random.randint(1, 65535) if size is None else size
         payload = random.randbytes(size)
         return payload
@@ -33,4 +37,4 @@ class BasePackage(ABCPackage):
         return self.PATH
 
     def get_package(self, name):
-        return self.package[name]
+        return self.packages[name]

@@ -5,10 +5,10 @@ from tools.tools import get_timestamp, strcat, bytescat
 class DRKeyPackage(ABCPackage):
     layer = 'DRKeyLayer'
 
-    def __init__(self, layer, package, retrieval=False, prepackage=None):
+    def __init__(self, layer, basepackage, retrieval=False, prepackage=None):
         super().__init__()
-        self.PATH = package.PATH
-        self.id = package.id
+        self.PATH = basepackage.PATH
+        self.id = basepackage.id
         self.timestamp = get_timestamp()
         self.sessionid = None
         self.AUTH = None
@@ -35,8 +35,10 @@ class DRKeyPackage(ABCPackage):
         RLayer = [i.get_layer(self.get_layer()) for i in PATH]
         Ki = b''
         for i in RLayer:
-            Ki += layer.Ki[self.sessionid][i]
+            Ki += layer.node.OPTLayer.Ki[self.sessionid][i.node.OPTLayer]
         self.KEYS = layer.AESEncrypt(layer.SymK[self.sessionid][1], bytescat(Ki + self.AUTH))
+        del layer.SymK[self.sessionid]
+
 
     def add_enckey(self, Layer, EncKey):
         self.EncKey[Layer] = EncKey
