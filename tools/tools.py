@@ -1,13 +1,12 @@
 import logging
 import os
 import pickle
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
 import networkx as nx
 from matplotlib import pyplot as plt
-
-from config.config import Config
 
 
 def to_bytes(obj):
@@ -20,6 +19,16 @@ def strcat(*args):
     result = ""
     for i in args:
         result += str(i)
+    return result
+
+
+def bytescat(*args):
+    result = b""
+    for i in args:
+        if not isinstance(i, bytes):
+            result += i.encode()
+        else:
+            result += i
     return result
 
 
@@ -48,11 +57,11 @@ def save_obj(path, obj):
         pickle.dump(obj, f)
 
 
-def load_obj(path, seed, filename, gen_obj, **kwargs):
+def load_obj(path, seed, filename, gen_obj, stop=False, **kwargs):
     dir = strcat(path, '/', seed)
     os.makedirs(dir, exist_ok=True)
     path = strcat(dir, '/', filename)
-    if not os.path.exists(path) or os.getenv('Cache') != 'True':
+    if not os.path.exists(path) or os.getenv('Cache') != 'True' or stop is True:
         obj = gen_obj(*kwargs.values())
         save_obj(path, obj)
     else:
@@ -61,11 +70,7 @@ def load_obj(path, seed, filename, gen_obj, **kwargs):
     return obj
 
 
-def get_time_take():
-    return time.time() - Config.time0
-
-
-def thread_exec(func, iters):
+def thread_exec_wait(func, iters):
     with ThreadPoolExecutor(max_workers=len(iters)) as executor:
         results = executor.map(func, iters)
         try:
@@ -74,6 +79,19 @@ def thread_exec(func, iters):
         except Exception as e:
             logging.exception(e)
     return results
+
+
+def thread_exec_without_wait(func, iters):
+    try:
+        threads = []
+        for i in iters:
+            thread = threading.Thread(target=func, args=(i,))
+            thread.daemon = True
+            thread.start()
+            threads.append(thread)
+        return threads
+    except Exception as e:
+        logging.exception(e)
 
 
 def check_thread_err(results):
