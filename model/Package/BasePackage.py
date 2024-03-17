@@ -1,40 +1,30 @@
-import random
+from model.Package.DRKeyPackage import DRKeyPackage
+from model.Package.OPTPackage import OPTPackage
+from tools.tools import get_timestamp
 
-from model.Package.ABCPackage import ABCPackage
 
-
-class BasePackage(ABCPackage):
-    name = 'BaseLayer'
-    index = 0
+class BasePackage(DRKeyPackage, OPTPackage):
 
     def __init__(self, PATH, size=None):
-        super().__init__()
         self.id = self.index
         self.index_add()
         self.PATH = PATH
         self.payload = self.gen_payload(size)
-        self.packages = {}
+        self.timestamp = get_timestamp()
+        self.PROTOCOL = ['BaseLayer']
 
-    def add_package(self, source_layer, Package, **kwargs):
-        package = Package(source_layer, self, **kwargs)
-        self.packages[Package.get_layer()] = package
-        return package
+    def DRKey_init(self, layer, retrieval=False, prepackage=None):
+        DRKeyPackage.__init__(self, retrieval)
+        if not retrieval:
+            self.DRKey_S_initialization(layer)
+        else:
+            self.DRKey_D_initialization(layer, prepackage)
+        self.PROTOCOL.append('DRKeyLayer')
 
-    def del_package(self, layer):
-        del self.packages[layer]
+    def OPT_init(self, layer, sessionid=None):
+        OPTPackage.__init__(self)
+        self.OPT_S_initialization(layer, sessionid)
+        self.PROTOCOL.append('OPTLayer')
 
-    @staticmethod
-    def gen_payload(size=None):
-        size = random.randint(1, 65535) if size is None else size
-        payload = random.randbytes(size)
-        return payload
-
-    @classmethod
-    def index_add(cls):
-        cls.index += 1
-
-    def get_path(self):
-        return self.PATH
-
-    def get_package(self, name):
-        return self.packages[name]
+    def get_timestamp(self):
+        return self.timestamp

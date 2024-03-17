@@ -1,28 +1,27 @@
 import os
 
+from controller.PKI import PKI
 from model.Layer.ABCLayer import ABCLayer
 from model.Package.BasePackage import BasePackage
-from model.Package.DRKeyPackage import DRKeyPackage
 from tools.tools import strcat, load_obj, bytescat
 
 
 class DRKeyLayer(ABCLayer):
-    name = 'DRKeyLayer'
-    package = DRKeyPackage
 
-    def __init__(self, node):
-        self.SK, self.PK = node.SK, node.PK
-        self.node = node
+    def __init__(self):
         self.LK = self.SymKeyGen()
+        self.Ki = {}
         self.KSD = {}
         self.SymK = {}
 
-    def receive(self, node, package, PATH, index):
-        if not package.retrieval:
+    def receive(self, node, package, PATH, index, protocol):
+        if 'DRKeyLayer' not in protocol:
+            return True
+        if not package.if_retrieval():
             if index == len(PATH) - 1:
                 if self.D_check(package, PATH, index):
                     retrieval_package = BasePackage(PATH[::-1])
-                    retrieval_package.add_package(self, DRKeyPackage, retrieval=True, prepackage=package)
+                    retrieval_package.DRKey_init(self, retrieval=True, prepackage=package)
                     node.add_package(retrieval_package)
                     return True
             else:
@@ -38,74 +37,104 @@ class DRKeyLayer(ABCLayer):
         return False
 
     def R_sign(self, package, PATH, index):
-        SLayer = PATH[0].get_layer(self.get_name())
-        Ki = self.MAC(self.LK, package.sessionid)
-        self.node.OPTLayer.Ki[package.sessionid] = {}
-        self.node.OPTLayer.Ki[package.sessionid][SLayer.node.OPTLayer] = Ki
-        EncKEYRi = self.RSAEncrypt(package.PK, Ki)
-        SignKeyRi = self.RSASign(self.SK, strcat(Ki, package.PK))
-        package.add_enckey(self, EncKEYRi)
-        package.add_signkey(self, SignKeyRi)
+        Sid = PATH[0]
+        session = package.get_session()
+        PK = package.get_PK()
+
+        Ki = self.MAC(self.LK, session)
+        self.Ki[session] = {}
+        self.Ki[session][Sid] = Ki
+        EncKEYRi = self.RSAEncrypt(PK, Ki)
+        SignKeyRi = self.RSASign(self.SK, strcat(Ki, PK))
+
+        package.add_enckey(self.id, EncKEYRi)
+        package.add_signkey(self.id, SignKeyRi)
         return True
 
     def D_check(self, package, PATH, index):
-        DLayer = PATH[-1].get_layer(self.get_name())
-        SLayer = PATH[0].get_layer(self.get_name())
-        RLayer = [i.get_layer(self.get_name()) for i in PATH[1:-1]]
+        Did = PATH[-1]
+        Sid = PATH[0]
+        Rid = PATH[1:-1]
+        PK = package.get_PK()
+        timestamp = package.get_timestamp()
+        AUTH = package.get_AUTH()
+        EncKey = package.get_EncKey()
+        SignKey = package.get_SignKey()
+        session = package.get_session()
 
-        if self != PATH[-1].get_layer(self.name):
+        if self.node.id != Did:
             return False
 
-        sessionid = self.H(strcat(package.PK, PATH, package.timestamp))
-        if sessionid != package.sessionid:
+        sessionid = self.H(strcat(PK, PATH, timestamp))
+        if sessionid != session:
             return False
 
-        KSD = self.MAC(self.KSD[SLayer], strcat(PATH[0], PATH[-1], package.sessionid))
-        KDS = self.MAC(self.KSD[SLayer], strcat(PATH[-1], PATH[0], package.sessionid))
-        self.SymK[sessionid] = (KSD, KDS)
-        sessionid_sk = self.AESDecrypt(KSD, package.AUTH)
-        SK = sessionid_sk[len(sessionid):]
-        self.node.OPTLayer.Ki[package.sessionid] = {}
+        KSD = self.MAC(self.KSD[Sid], strcat(Sid, Did, session))
+        KDS = self.MAC(self.KSD[Sid], strcat(Did, Sid, session))
+        self.SymK[session] = (KSD, KDS)
 
-        for i in range(len(package.EncKey)):
-            Ki = self.RSADecrypt(SK, package.EncKey[RLayer[i]])
-            self.node.OPTLayer.Ki[package.sessionid][RLayer[i].node.OPTLayer] = Ki
-            if not self.RSACheck(RLayer[i].PK, bytescat(Ki, package.PK), package.SignKey[RLayer[i]]):
+        sessionid_sk = self.AESDecrypt(KSD, AUTH)
+        SK = sessionid_sk[len(session):]
+        self.Ki[session] = {}
+
+        for i in Rid:
+            Ki = self.RSADecrypt(SK, EncKey[i])
+            self.Ki[session][i] = Ki
+            if not self.RSACheck(PKI[i], bytescat(Ki, PK), SignKey[i]):
                 return False
 
-        self.node.OPTLayer.Ki[package.sessionid][DLayer.node.OPTLayer] = self.MAC(self.LK, package.sessionid)
+        self.Ki[session][Did] = self.MAC(self.LK, session)
         return True
 
     def S_synchronize(self, package, PATH, index):
-        AUTH = self.AESDecrypt(self.SymK[package.sessionid][1], package.KEYS)
-        del self.SymK[package.sessionid]
-        RLayer = [i.get_layer(self.get_name()) for i in PATH[:-1]][::-1]
-        self.node.OPTLayer.Ki[package.sessionid] = {}
+        session = package.get_session()
+        KEYS = package.get_KEYS()
+        Rid = PATH[:-1][::-1]
+
+        AUTH = self.AESDecrypt(self.SymK[session][1], KEYS)
+        del self.SymK[session]
+
         Ki = {}
-        for i in range(len(RLayer)):
-            Ki[RLayer[i].node.OPTLayer] = AUTH[:32]
+        for i in Rid:
+            Ki[i] = AUTH[:32]
             AUTH = AUTH[32:]
-        self.node.OPTLayer.Ki[package.sessionid] = Ki
+        self.Ki[session] = Ki
+
         if AUTH != package.AUTH:
             return False
         return True
 
-    def pre_share(self, DLayer):  # step 0
-        if DLayer not in self.KSD:
-            Key = self.SymKeyGen()
-            self.KSD[DLayer] = Key
-            DLayer.KSD[self] = Key
+    def set_KSD(self, Did, Key):  # step 0
+        if Did not in self.KSD:
+            self.KSD[Did] = Key
+
+    def get_Ki_by_session_id(self, session, id):
+        return self.Ki[session][id]
+
+    def get_Ki_by_session(self, session):
+        return self.Ki[session]
+
+    def get_KDS_by_session(self, session):
+        return self.SymK[session][1]
 
     def add_SymK(self, package):  # step 5
-        DLayer = package.PATH[-1].get_layer(self.get_name())
-        self.pre_share(DLayer)
-        KSD = self.MAC(self.KSD[DLayer], strcat(package.PATH[0], package.PATH[-1], package.sessionid))
-        KDS = self.MAC(self.KSD[DLayer], strcat(package.PATH[-1], package.PATH[0], package.sessionid))
-        self.SymK[package.sessionid] = (KSD, KDS)
+        PATH = package.get_PATH()
+        Did = PATH[-1]
+        Sid = PATH[0]
+        session = package.get_session()
+
+        KSD = self.MAC(self.KSD[Did], strcat(Sid, Did, session))
+        KDS = self.MAC(self.KSD[Did], strcat(Sid, Did, session))
+        self.SymK[session] = (KSD, KDS)
         return KSD, KDS
 
     def add_ASymK(self, package):  # step 1
-        SK, PK = load_obj('record/DRKey/keys/pk_sk', os.getenv('RandomSeed'), package.id, self.ASymKeyGen)
+        id = package.get_id()
+
+        SK, PK = load_obj('record/DRKey/keys/pk_sk', os.getenv('RandomSeed'), id, self.ASymKeyGen)
         SK = SK.decode()
         PK = PK.decode()
         return SK, PK
+
+    def del_SymK_by_session(self, session):
+        del self.SymK[session]

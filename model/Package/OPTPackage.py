@@ -1,31 +1,18 @@
-import random
-from time import sleep
-
-from model.Layer.DRKeyLayer import DRKeyLayer
 from model.Package.ABCPackage import ABCPackage
-from model.Package.DRKeyPackage import DRKeyPackage
-from tools.tools import get_timestamp
 from tools.tools import strcat
 
 
 class OPTPackage(ABCPackage):
-    layer = 'OPTLayer'
 
-    def __init__(self, layer, basepackage):
-        super().__init__()
+    def __init__(self):
         self.opv = None
         self.pvf = None
         self.sessionid = None
         self.datahash = None
-        self.id = basepackage.id
-        self.PATH = basepackage.PATH
-        self.payload = basepackage.payload
-        self.timestamp = get_timestamp()
-        self.sessionid = layer.gen_DRKeyPackage(basepackage)
-        self.S_initialization(layer)
 
-    def S_initialization(self, layer):
-        Ki = tuple(layer.Ki[self.sessionid].values())  # 包含S、D
+    def OPT_S_initialization(self, layer, sessionid):
+        self.sessionid = sessionid
+        Ki = tuple(layer.get_Ki_by_session(self.sessionid).values())  # 包含S、D
         self.datahash = layer.H(self.payload)
         self.pvf = layer.MAC(Ki[-1], self.datahash)
         pvf = self.pvf
@@ -34,3 +21,14 @@ class OPTPackage(ABCPackage):
             self.opv[i] = layer.MAC(Ki[i - 1], strcat(pvf, self.datahash, self.PATH[i - 1], self.timestamp))
             pvf = layer.MAC(Ki[i - 1], pvf)
 
+    def get_session(self):
+        return self.sessionid
+
+    def get_pvf(self):
+        return self.pvf
+
+    def get_opv_by_id(self, id):
+        return self.opv[id]
+
+    def get_datahash(self):
+        return self.datahash

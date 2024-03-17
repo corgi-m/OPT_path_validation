@@ -3,7 +3,7 @@ import random
 import networkx as nx
 
 
-class GenFactory:
+class NetworkHelper:
 
     @staticmethod
     def gen_route(G, num_paths_to_select=30):

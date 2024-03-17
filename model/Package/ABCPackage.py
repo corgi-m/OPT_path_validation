@@ -1,20 +1,21 @@
-from abc import ABC
+from model.Package.ABCPackageHelper import ABCPackageHelper
 
 
-class ABCPackage(ABC):
-    layer = 'ABCLayer'
+class ABCPackage(ABCPackageHelper):
+    index = 0
 
     def __init__(self):
         self.id = None
-
-    def __repr__(self):
-        class_name = self.__class__.__name__
-        attributes = ', '.join(f'{key}={value}' for key, value in self.__dict__.items())
-        return f'{class_name}({attributes})'
+        self.PATH = None
+        self.timestamp = None
+        self.payload = None
 
     @classmethod
-    def get_layer(cls):
-        return cls.layer
+    def index_add(cls):
+        cls.index += 1
 
     def get_id(self):
         return self.id
+
+    def get_PATH(self):
+        return self.PATH

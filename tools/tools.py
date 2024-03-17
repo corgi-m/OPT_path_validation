@@ -82,10 +82,16 @@ def thread_exec_wait(func, iters):
 
 
 def thread_exec_without_wait(func, iters):
-    for i in iters:
-        thread = threading.Thread(target=func, args=(i,))
-        thread.daemon = True
-        thread.start()
+    try:
+        threads = []
+        for i in iters:
+            thread = threading.Thread(target=func, args=(i,))
+            thread.daemon = True
+            thread.start()
+            threads.append(thread)
+        return threads
+    except Exception as e:
+        logging.exception(e)
 
 
 def check_thread_err(results):
