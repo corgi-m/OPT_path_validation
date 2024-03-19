@@ -9,23 +9,23 @@ class OPTLayer(ABCLayer):
     def __init__(self):
         self.Ki = {}
 
-    def receive(self, node, package, PATH, index, protocol):
+    def OPT_receive(self, node, package, PATH, index, protocol):
         if 'OPTLayer' not in protocol:
             return True
         if index == len(PATH) - 1:
-            if self.D_validation(package, PATH, index):
+            if self.OPT_D_validation(package, PATH, index):
                 return True
         else:
-            if self.R_validation(package, PATH, index):
+            if self.OPT_R_validation(package, PATH, index):
                 return True
         return False
 
-    def R_validation(self, package, PATH, id):
-        session = package.get_session()
+    def OPT_R_validation(self, package, PATH, id):
+        session = package.DRKey_get_session()
         Sid = PATH[0]
-        pvf = package.get_pvf()
-        opv = package.get_opv_by_id(id)
-        datahash = package.get_datahash()
+        pvf = package.OPT_get_pvf()
+        opv = package.OPT_get_opv_by_id(id)
+        datahash = package.OPT_get_datahash()
         timestamp = package.get_timestamp()
 
         Ki = self.Ki[session][Sid]
@@ -38,12 +38,12 @@ class OPTLayer(ABCLayer):
             logging.error(strcat(id, ': ', opv, ' = ', opv_))
             return False
 
-    def D_validation(self, package, PATH, index):
-        session = package.sessionid
-        datahash = package.datahash
-        pvf = package.pvf
-        timestamp = package.timestamp
-        opv = package.opv[-1]
+    def OPT_D_validation(self, package, PATH, index):
+        session = package.DRKey_get_session()
+        datahash = package.OPT_get_datahash()
+        pvf = package.OPT_get_pvf()
+        timestamp = package.get_timestamp()
+        opv = package.OPT_get_opv_by_id(-1)
 
         Ki = [self.Ki[session][i] for i in PATH[1:-1]]
         Kd = self.Ki[session][PATH[-1]]

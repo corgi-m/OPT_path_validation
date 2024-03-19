@@ -12,6 +12,5 @@ class ABCLayer(ABC, ABCLayerHelper):
         self.node = None
         self.id = None
 
-    @abstractmethod
     def receive(self, node, package, PATH, index, protocol):
         ...

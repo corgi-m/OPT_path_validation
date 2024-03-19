@@ -5,6 +5,7 @@ from config.config import Config
 from model.Layer.OPTLayer import OPTLayer
 from model.Network.Network import Network
 from model.Network.NetworkHelper import NetworkHelper
+from task.EPICTask import EPICTask
 from task.OPTTask import OPTTask
 from tools.tools import strcat, load_obj
 
@@ -28,6 +29,7 @@ if __name__ == "__main__":
 
     logging.info(strcat('network end ', Config.get_time_take()))
     net.add_node_task(OPTTask.opt_test, OPTTask.opt_params(net.ROUTE))
+    # net.add_node_task(EPICTask.EPIC_test, EPICTask.EPIC_params(net.ROUTE))
 
     for i in deamons:
         i.join()

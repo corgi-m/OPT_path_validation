@@ -19,3 +19,6 @@ class ABCPackage(ABCPackageHelper):
 
     def get_PATH(self):
         return self.PATH
+
+    def get_payload(self):
+        return self.payload

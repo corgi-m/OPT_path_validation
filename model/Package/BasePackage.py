@@ -1,15 +1,16 @@
 from model.Package.DRKeyPackage import DRKeyPackage
+from model.Package.EPICPackage import EPICPackage
 from model.Package.OPTPackage import OPTPackage
 from tools.tools import get_timestamp
 
 
-class BasePackage(DRKeyPackage, OPTPackage):
+class BasePackage(DRKeyPackage, OPTPackage, EPICPackage):
 
-    def __init__(self, PATH, size=None):
+    def __init__(self, PATH, payload=None):
         self.id = self.index
         self.index_add()
         self.PATH = PATH
-        self.payload = self.gen_payload(size)
+        self.payload = self.gen_payload() if payload is None else payload
         self.timestamp = get_timestamp()
         self.PROTOCOL = ['BaseLayer']
 
@@ -25,6 +26,11 @@ class BasePackage(DRKeyPackage, OPTPackage):
         OPTPackage.__init__(self)
         self.OPT_S_initialization(layer, sessionid)
         self.PROTOCOL.append('OPTLayer')
+
+    def EPIC_init(self, layer, retrieval=False):
+        EPICPackage.__init__(self, retrieval)
+        self.EPIC_S_initialization(layer)
+        self.PROTOCOL.append('EPICLayer')
 
     def get_timestamp(self):
         return self.timestamp

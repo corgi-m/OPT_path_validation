@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -12,7 +13,17 @@ from matplotlib import pyplot as plt
 def to_bytes(obj):
     if isinstance(obj, bytes):
         return obj
+    if isinstance(obj, int):
+        return str(obj).encode('utf-8')
     return obj.encode('utf-8')
+
+
+def str_to_list(obj):
+    pattern = r'"(.*?)"|\'(.*?)\''
+    l = []
+    for match in re.finditer(pattern, obj):
+        l.append(match.groups(1)[1].encode('utf-8'))
+    return l
 
 
 def strcat(*args):
@@ -33,7 +44,7 @@ def bytescat(*args):
 
 
 def get_timestamp():
-    return round(time.time() * 1000)
+    return str(round(time.time() * 1000))
 
 
 def draw_topology(G, ROUTE):

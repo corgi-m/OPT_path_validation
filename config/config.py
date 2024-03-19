@@ -10,6 +10,8 @@ from tools.tools import strcat
 class Config:
     time0 = time.time()
     incomplete = 0
+    lseg = 3
+    lval = 2
 
     def __init__(self, ininame='config/config.ini'):
         self.ininame = ininame
@@ -23,7 +25,7 @@ class Config:
     @classmethod
     def add_incomplete(cls):
         cls.incomplete += 1
-        logging.info(strcat('Network leave:', cls.incomplete))
+        logging.debug(strcat('Network leave:', cls.incomplete))
 
     @classmethod
     def complete(cls):
