@@ -107,9 +107,6 @@ class DRKeyLayer(ABCLayer):
     def DRKey_get_Ki_by_session_id(self, session, id):
         return self.Ki[session][id]
 
-    def DRKey_get_Ki_by_session(self, session):
-        return self.Ki[session]
-
     def DRKey_get_KDS_by_session(self, session):
         return self.SymK[session][1]
 

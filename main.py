@@ -7,6 +7,7 @@ from model.Network.Network import Network
 from model.Network.NetworkHelper import NetworkHelper
 from task.EPICTask import EPICTask
 from task.OPTTask import OPTTask
+from task.PPVTask import PPVTask
 from tools.tools import strcat, load_obj
 
 if __name__ == "__main__":
@@ -28,8 +29,9 @@ if __name__ == "__main__":
     deamons = net.network_start()
 
     logging.info(strcat('network end ', Config.get_time_take()))
-    net.add_node_task(OPTTask.opt_test, OPTTask.opt_params(net.ROUTE))
-    # net.add_node_task(EPICTask.EPIC_test, EPICTask.EPIC_params(net.ROUTE))
+    net.add_node_task(OPTTask.opt_test, OPTTask.abc_params(net.ROUTE))
+    # net.add_node_task(EPICTask.EPIC_test, EPICTask.abc_params(net.ROUTE))
+    # net.add_node_task(PPVTask.ppv_test, PPVTask.abc_params(net.ROUTE))
 
     for i in deamons:
         i.join()

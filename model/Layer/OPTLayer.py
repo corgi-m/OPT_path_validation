@@ -8,6 +8,7 @@ class OPTLayer(ABCLayer):
 
     def __init__(self):
         self.Ki = {}
+        self.KSD = {}
 
     def OPT_receive(self, node, package, PATH, index, protocol):
         if 'OPTLayer' not in protocol:
@@ -21,7 +22,7 @@ class OPTLayer(ABCLayer):
         return False
 
     def OPT_R_validation(self, package, PATH, id):
-        session = package.DRKey_get_session()
+        session = package.OPT_get_session()
         Sid = PATH[0]
         pvf = package.OPT_get_pvf()
         opv = package.OPT_get_opv_by_id(id)
@@ -39,7 +40,7 @@ class OPTLayer(ABCLayer):
             return False
 
     def OPT_D_validation(self, package, PATH, index):
-        session = package.DRKey_get_session()
+        session = package.OPT_get_session()
         datahash = package.OPT_get_datahash()
         pvf = package.OPT_get_pvf()
         timestamp = package.get_timestamp()
@@ -56,3 +57,6 @@ class OPTLayer(ABCLayer):
             return True
         else:
             return False
+
+    def OPT_get_Ki_by_session(self, session):
+        return self.Ki[session]

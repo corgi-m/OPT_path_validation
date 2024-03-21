@@ -5,6 +5,7 @@ from tools.tools import strcat, bytescat
 class DRKeyPackage(ABCPackage):
 
     def __init__(self, retrieval=False):
+        self.sessionid = None
         self.AUTH = None
         self.retrieval = retrieval
         if not retrieval:

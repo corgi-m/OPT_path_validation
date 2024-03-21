@@ -50,3 +50,6 @@ class EPICPackage(ABCPackage, EPICHelper):
 
     def EPIC_set_Vi_by_id(self, Vi, id):
         self.Vi[id] = Vi
+
+    def EPIC_if_retrieval(self):
+        return self.retrieval

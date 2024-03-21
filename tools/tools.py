@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+import random
 import re
 import threading
 import time
@@ -105,9 +106,5 @@ def thread_exec_without_wait(func, iters):
         logging.exception(e)
 
 
-def check_thread_err(results):
-    try:
-        for result in results:
-            ...
-    except Exception as e:
-        logging.exception(e)
+def check_probability(true_probability=0.7):
+    return random.choices([True, False], weights=[true_probability, 1 - true_probability])[0]

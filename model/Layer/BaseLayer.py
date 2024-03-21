@@ -1,9 +1,10 @@
 from model.Layer.DRKeyLayer import DRKeyLayer
 from model.Layer.EPICLayer import EPICLayer
 from model.Layer.OPTLayer import OPTLayer
+from model.Layer.PPVLayer import PPVLayer
 
 
-class BaseLayer(DRKeyLayer, OPTLayer, EPICLayer):
+class BaseLayer(DRKeyLayer, OPTLayer, EPICLayer, PPVLayer):
     name = 'BaseLayer'
 
     def __init__(self, node):
@@ -20,6 +21,8 @@ class BaseLayer(DRKeyLayer, OPTLayer, EPICLayer):
         if not self.OPT_receive(node, package, PATH, index, protocol):
             return False
         if not self.EPIC_receive(node, package, PATH, index, protocol):
+            return False
+        if not self.PPV_receive(node, package, PATH, index, protocol):
             return False
         return True
 

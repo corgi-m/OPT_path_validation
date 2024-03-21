@@ -5,13 +5,14 @@ from tools.tools import strcat
 class OPTPackage(ABCPackage):
 
     def __init__(self):
+        self.sessionid = None
         self.opv = None
         self.pvf = None
         self.datahash = None
 
     def OPT_S_initialization(self, layer, sessionid):
         self.sessionid = sessionid
-        Ki = tuple(layer.DRKey_get_Ki_by_session(self.sessionid).values())  # 包含S、D
+        Ki = tuple(layer.OPT_get_Ki_by_session(self.sessionid).values())  # 包含S、D
         self.datahash = layer.H(self.payload)
         self.pvf = layer.MAC(Ki[-1], self.datahash)
         pvf = self.pvf

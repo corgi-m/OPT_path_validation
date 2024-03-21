@@ -16,7 +16,7 @@ class EPICLayer(ABCLayer, EPICHelper):
     def EPIC_receive(self, node, package, PATH, index, protocol):
         if 'EPICLayer' not in protocol:
             return True
-        if not package.DRKey_if_retrieval():
+        if not package.EPIC_if_retrieval():
             if not self.EPIC_R_validation(package, PATH, index):
                 return False
             if index == len(PATH) - 1:
@@ -57,7 +57,7 @@ class EPICLayer(ABCLayer, EPICHelper):
         Ci1 = Ci[:self.lval]
         if Vi[id] != Ci1:
             return False
-        if not package.DRKey_if_retrieval():
+        if not package.EPIC_if_retrieval():
             Ci2 = Ci[self.lval:2 * self.lval]
             package.EPIC_set_Vi_by_id(Ci2, id)
         return True
@@ -73,7 +73,7 @@ class EPICLayer(ABCLayer, EPICHelper):
         if not self.EPIC_check_time(timestamp, tspkt):
             return False
 
-        if not package.DRKey_if_retrieval():
+        if not package.EPIC_if_retrieval():
             VSD_ = self.MAC(KSD, strcat(tspkt, PPATH, Vi, payload))
             if VSD != VSD_:
                 return False
