@@ -27,11 +27,24 @@ def str_to_list(obj):
     return l
 
 
+def bytes_to_int(obj):
+    if not isinstance(obj, bytes):
+        raise 'not bytes'
+    return int.from_bytes(obj)
+
 def strcat(*args):
     result = ""
     for i in args:
         result += str(i)
     return result
+
+
+def stroutput(*args):
+    result = []
+    for i in args:
+        result.append(type(i))
+        result.append(i)
+    print(result)
 
 
 def bytescat(*args):

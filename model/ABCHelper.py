@@ -5,6 +5,7 @@ import random
 import time
 from functools import wraps
 
+import sympy
 from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_v1_5 as RSAENC
 from Crypto.Hash import SHA384
@@ -102,3 +103,11 @@ class ABCHelper:
         SK = key.export_key()
         PK = key.publickey().export_key()
         return SK, PK
+
+    @staticmethod
+    def PrimeGen(bits=1024):
+        while True:
+            q = sympy.randprime(2 ** (bits - 1), 2 ** bits)
+            if sympy.isprime(2 * q + 1):
+                return q, 2 * q + 1
+    

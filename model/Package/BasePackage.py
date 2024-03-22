@@ -1,3 +1,4 @@
+from model.Package.AtomosPackage import AtomosPackage
 from model.Package.DRKeyPackage import DRKeyPackage
 from model.Package.EPICPackage import EPICPackage
 from model.Package.OPTPackage import OPTPackage
@@ -5,7 +6,7 @@ from model.Package.PPVPackage import PPVPackage
 from tools.tools import get_timestamp
 
 
-class BasePackage(DRKeyPackage, OPTPackage, EPICPackage, PPVPackage):
+class BasePackage(DRKeyPackage, OPTPackage, EPICPackage, PPVPackage, AtomosPackage):
 
     def __init__(self, PATH, payload=None):
         self.id = self.index
@@ -37,6 +38,10 @@ class BasePackage(DRKeyPackage, OPTPackage, EPICPackage, PPVPackage):
         PPVPackage.__init__(self)
         self.PPV_S_initialization(layer, sessionid)
         self.PROTOCOL.append('PPVLayer')
+    def Atomos_init(self, layer, sessionid=None):
+        AtomosPackage.__init__(self)
+        self.Atomos_S_Construction(layer, sessionid)
+        self.PROTOCOL.append('AtomosLayer')
 
     def get_timestamp(self):
         return self.timestamp

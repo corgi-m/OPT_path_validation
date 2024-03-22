@@ -5,6 +5,7 @@ import time
 
 from config.config import Config
 from controller.PKI import PKI
+from model.ABCHelper import ABCHelper
 from model.Layer.BaseLayer import BaseLayer
 from tools.tools import load_obj, strcat
 
@@ -15,7 +16,7 @@ class BaseNode:
         self.id = index
         self.routing_table = {}  # 路由表
         self.packages = queue.Queue()
-        SK, PK = load_obj('record/keys/pk_sk', os.getenv('RandomSeed'), self.id, BaseLayer.ASymKeyGen)
+        SK, PK = load_obj('record/keys/pk_sk', os.getenv('RandomSeed'), self.id, ABCHelper.ASymKeyGen)
         self.SK = SK.decode()
         self.PK = PK.decode()
         PKI[self.id] = self.PK
@@ -76,3 +77,6 @@ class BaseNode:
     def add_package(self, package):
         Config.add_incomplete()
         self.packages.put(package)
+
+
+

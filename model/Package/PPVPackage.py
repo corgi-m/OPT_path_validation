@@ -24,54 +24,54 @@ class PPVPackage(ABCPackage, PPVHelper):
         self.packetid = layer.MAC(KSD, strcat(self.flowid, self.payload))
         self.mvf = layer.MAC(KSD, strcat(self.packetid))
 
-    def sub_TTL(self):
+    def PPV_sub_TTL(self):
         self.TTL -= 1
 
-    def get_TTL(self):
+    def PPV_get_TTL(self):
         return self.TTL
 
-    def get_flowid(self):
+    def PPV_get_flowid(self):
         return self.flowid
 
-    def get_packetid(self):
+    def PPV_get_packetid(self):
         return self.packetid
 
-    def get_add1(self):
+    def PPV_get_add1(self):
         return self.add1
 
-    def get_add2(self):
+    def PPV_get_add2(self):
         return self.add2
 
-    def get_mf1(self):
+    def PPV_get_mf1(self):
         return self.mf1
 
-    def get_mf2(self):
+    def PPV_get_mf2(self):
         return self.mf2
 
-    def get_mvf(self):
+    def PPV_get_mvf(self):
         return self.mvf
 
-    def is_mf1_empty(self):
+    def PPV_is_mf1_empty(self):
         if self.mf1 is None:
             return True
         return False
 
-    def is_mf2_empty(self):
+    def PPV_is_mf2_empty(self):
         if self.mf2 is None:
             return True
         return False
 
-    def set_add1(self, add1):
+    def PPV_set_add1(self, add1):
         self.add1 = add1
 
-    def set_add2(self, add2):
+    def PPV_set_add2(self, add2):
         self.add2 = add2
 
-    def set_mf1(self, mf1):
+    def PPV_set_mf1(self, mf1):
         self.mf1 = mf1
 
-    def set_mf2(self, mf2):
+    def PPV_set_mf2(self, mf2):
         self.mf2 = mf2
 
-    def set_mvf(self, mvf):
+    def PPV_set_mvf(self, mvf):
         self.mvf = mvf

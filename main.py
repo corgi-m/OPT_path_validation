@@ -5,6 +5,7 @@ from config.config import Config
 from model.Layer.OPTLayer import OPTLayer
 from model.Network.Network import Network
 from model.Network.NetworkHelper import NetworkHelper
+from task.AtomosTask import AtomosTask
 from task.EPICTask import EPICTask
 from task.OPTTask import OPTTask
 from task.PPVTask import PPVTask
@@ -29,9 +30,13 @@ if __name__ == "__main__":
     deamons = net.network_start()
 
     logging.info(strcat('network end ', Config.get_time_take()))
-    net.add_node_task(OPTTask.opt_test, OPTTask.abc_params(net.ROUTE))
+    AtomosTask.preset_Ki_by_global(net.nodes.values())
+
+    # net.add_node_task(OPTTask.opt_test, OPTTask.abc_params(net.ROUTE))
     # net.add_node_task(EPICTask.EPIC_test, EPICTask.abc_params(net.ROUTE))
     # net.add_node_task(PPVTask.ppv_test, PPVTask.abc_params(net.ROUTE))
+    net.add_node_task(AtomosTask.atomos_test, PPVTask.abc_params(net.ROUTE))
+
 
     for i in deamons:
         i.join()
